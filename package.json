@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "typescript": "^5.1.3"
+  },
+  "scripts": {
+    "watch": "npx tsc --watch",
+    "compile": "rimraf dist/ && tsc -p ./",
+    "dev": "node -r /dist/main.js" 
+  },
+  "dependencies": {
+    "rimraf": "^5.0.1"
+  }
+}
