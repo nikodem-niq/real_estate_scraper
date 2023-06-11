@@ -24,9 +24,6 @@ export class Scraper {
     return $(selector).text();
   }
 
-  // Dodaj inne metody do manipulacji DOM według potrzeb
-
-  // Przykładowa metoda, która używa innej metody w klasie
   scrapeData(): void {
     const title = this.getElementText('h1');
     console.log('Page title:', title);
