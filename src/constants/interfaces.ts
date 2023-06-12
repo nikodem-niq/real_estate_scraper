@@ -1,3 +1,28 @@
+export interface IHttpClient {
+    get(url: string): Promise<string>;
+}
+
+export type PropertyType = "mieszkanie" | "dom" | "unknown";
+export type PropertyOwnerType = "private" | "developer" | "unknown";
+export interface IProperty {
+    type: PropertyType;
+    city: string | "unknown";
+    street: string | "unknown";
+    area: number;
+    priceForMetre: number;
+    fullPrice: number;
+    ownerType: PropertyOwnerType;
+    propertyCondition: string | "unknown";
+    standard: string | "unknown";
+    phoneNumber: string | "unknown";
+    ownerName: string | "unknown";
+    urlToProperty: string | "unknown";
+  }
+
+export interface IPropertyAccess {
+    type(value: PropertyType) : void
+}
+
 export interface ScraperURLSettings {
     [scraper: string] : { name: string; url: string; }
 }
@@ -11,7 +36,3 @@ export interface OtodomSettings {
     areaLow?: number;
     areaHigh?: number;
 }
-
-export interface IHttpClient {
-    get(url: string): Promise<string>;
-  }

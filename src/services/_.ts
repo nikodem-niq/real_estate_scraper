@@ -1,12 +1,16 @@
 import cheerio from 'cheerio';
 import HttpClient from '../http-client';
 import { IHttpClient } from '../constants/interfaces'
+import { Property } from '../property/property';
 
-export class Scraper {
+export class Scraper extends Property {
+  public Property : Property;
   public html: string = '';
   private httpClient: IHttpClient;
 
   constructor() {
+    super();
+    this.Property = new Property();
     this.httpClient = new HttpClient();
   }
 
@@ -24,8 +28,5 @@ export class Scraper {
     return $(selector).text();
   }
 
-  scrapeData(): void {
-    const title = this.getElementText('h1');
-    console.log('Page title:', title);
-  }
+
 }

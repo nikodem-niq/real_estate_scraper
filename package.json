@@ -20,8 +20,12 @@
     "start-dev": "npm run compile && npm run dev"
   },
   "dependencies": {
+    "@types/json2csv": "^5.0.3",
     "@types/node": "^20.2.6",
     "cheerio": "^1.0.0-rc.12",
+    "exceljs": "^4.3.0",
+    "json2csv": "^6.0.0-alpha.2",
+    "moment": "^2.29.4",
     "node-fetch": "^2.6.1",
     "puppeteer": "^20.5.0",
     "rimraf": "^5.0.1"
