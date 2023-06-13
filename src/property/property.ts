@@ -1,4 +1,4 @@
-import { IProperty, PropertyType, PropertyOwnerType } from "../constants/interfaces";
+import { IProperty, PropertyType, PropertyOwnerType, WhichScraperFrom } from "../constants/interfaces";
 import { CsvHelper } from '../helpers/csvHelper';
   
 export class Property {
@@ -19,6 +19,10 @@ export class Property {
 
     // Setters and getters for specific values of propertyData
   
+    set scraper(value: WhichScraperFrom) {
+      this._propertyData.scraper = value;
+    }
+
     set type(value: PropertyType) {
       this._propertyData.type = value;
     }
@@ -67,6 +71,10 @@ export class Property {
       this._propertyData.urlToProperty = value;
     }
   
+    get scraper() : WhichScraperFrom {
+      return this._propertyData.scraper;
+    }
+
     get type(): PropertyType {
       return this._propertyData.type;
     }
@@ -117,6 +125,7 @@ export class Property {
 
     setDefaultValues() : IProperty {
         return {
+            scraper: 'unknown',
             type: 'unknown',
             city: 'unknown',
             street: 'unknown',

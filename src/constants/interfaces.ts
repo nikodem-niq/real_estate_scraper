@@ -2,9 +2,11 @@ export interface IHttpClient {
     get(url: string): Promise<string>;
 }
 
+export type WhichScraperFrom = "OTODOM" | "unknown";
 export type PropertyType = "mieszkanie" | "dom" | "unknown";
 export type PropertyOwnerType = "private" | "developer" | "unknown";
 export interface IProperty {
+    scraper: WhichScraperFrom;
     type: PropertyType;
     city: string | "unknown";
     street: string | "unknown";

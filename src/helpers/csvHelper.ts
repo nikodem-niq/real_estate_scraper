@@ -11,11 +11,12 @@ export class CsvHelper {
     }
 
     addHeaderRow() : void {
-        this.worksheet.addRow(['Typ', 'Miasto', 'Ulica', 'Powierzchnia', 'Cena za metr', 'Cena całkowita', 'Typ właściciela', 'Stan nieruchomości', 'Standard', 'Numer telefonu', 'Właściciel', 'URL do nieruchomości']);
+        this.worksheet.addRow(['Scraper', 'Typ', 'Miasto', 'Ulica', 'Powierzchnia', 'Cena za metr', 'Cena całkowita', 'Typ właściciela', 'Stan nieruchomości', 'Standard', 'Numer telefonu', 'Właściciel', 'URL do nieruchomości']);
     }
 
     addPropertyRow(Property : IProperty) : void {
         this.worksheet.addRow([
+            Property.scraper,
             Property.type,
             Property.city,
             Property.street,
@@ -31,9 +32,9 @@ export class CsvHelper {
           ]);    
     }
 
-    async saveExcelFile() : Promise<void> {
+    async saveExcelFile(scraperName : string) : Promise<void> {
         // todo
         // if dir doesnt exists - create it
-        await this.workbook.xlsx.writeFile('./csv/dane.csv');
+        await this.workbook.xlsx.writeFile(`./csv/${scraperName}.csv`);
     }
 }
