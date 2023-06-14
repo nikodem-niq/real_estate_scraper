@@ -1,10 +1,12 @@
 import moment from "moment"
 import { IProperty } from "../constants/interfaces";
 import { Workbook, Worksheet } from "exceljs";
+import { mkdirSync, existsSync } from "fs";
 
 export class CsvHelper {
     private workbook;
     private worksheet;
+    private absolutePath = './csv/'
     constructor() {
         this.workbook = new Workbook();
         this.worksheet = this.workbook.addWorksheet('Scraper');
@@ -35,6 +37,9 @@ export class CsvHelper {
     async saveExcelFile(scraperName : string) : Promise<void> {
         // todo
         // if dir doesnt exists - create it
-        await this.workbook.xlsx.writeFile(`./csv/${scraperName}.csv`);
+        if(!existsSync(this.absolutePath)) {
+            mkdirSync(this.absolutePath, {recursive: true});
+        }
+        await this.workbook.xlsx.writeFile(`${this.absolutePath}${scraperName}.csv`);
     }
 }

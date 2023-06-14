@@ -38,3 +38,12 @@ export interface OtodomSettings {
     areaLow?: number;
     areaHigh?: number;
 }
+type MorizonSettingType = OtodomSettingType;
+export interface MorizonSettings {
+    city: string;
+    type: MorizonSettingType;
+    priceLow?: number;
+    priceHigh?: number;
+    areaLow?: number;
+    areaHigh?: number;
+}

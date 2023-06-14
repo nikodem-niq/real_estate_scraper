@@ -21,27 +21,35 @@ export class Otodom extends Scraper {
     logHelper = new Logger(baseURL.OTODOM.name as string);
 
     async initScrape() {
-        const { city, type, areaHigh, areaLow, priceHigh, priceLow } = this.searchSettings;
-        this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}`
-        this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log")
-        await this.fetchHtml(this.url)
-        const pageCount = this.html.match(/"page_count":\d{1,}/gm);
-        this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
-        this.runScrapeProperties();
+        try {
+            const { city, type, areaHigh, areaLow, priceHigh, priceLow } = this.searchSettings;
+            this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}`
+            this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log")
+            await this.fetchHtml(this.url)
+            const pageCount = this.html.match(/"page_count":\d{1,}/gm);
+            this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
+            this.runScrapeProperties();
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
     }
 
     async runScrapeProperties() {
-        for(let i=1; i<=1; i++) {
-            this.url = `${this.url}&page=${i}`;
-            await this.fetchHtml(this.url);
-            this.logHelper.log(`Fetching OTODOM properties, current progress: ${i}/${this.pageCount} sites`, "log")
-            const siteData = JSON.parse(this.getElementText("#__NEXT_DATA__"));
-            const { props : { pageProps : { data : { searchAds : { items }}}}} = siteData
-            for(const propertyData of items) {
-                this.properties.push(`${this.propertyUrl}${propertyData.slug}`)
+        try {
+            for(let i=1; i<=1; i++) {
+                this.url = `${this.url}&page=${i}`;
+                await this.fetchHtml(this.url);
+                this.logHelper.log(`Fetching OTODOM properties, current progress: ${i}/${this.pageCount} sites`, "log")
+                const siteData = JSON.parse(this.getElementText("#__NEXT_DATA__"));
+                const { props : { pageProps : { data : { searchAds : { items }}}}} = siteData
+                for(const propertyData of items) {
+                    this.properties.push(`${this.propertyUrl}${propertyData.slug}`)
+                }
             }
+            this.runScrapeProperty();
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
         }
-        this.runScrapeProperty();
     }
 
     async runScrapeProperty() {
