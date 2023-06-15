@@ -19,6 +19,7 @@ export class Morizon extends Scraper {
     }
 
     private logHelper = new Logger(baseURL.MORIZON.name as string);
+    private excelHelper = new CsvHelper();
 
     public async initScrape() {
         try{
@@ -30,7 +31,8 @@ export class Morizon extends Scraper {
             const pageCount = await this.getLastElementTextFromClass(this.url, "pagination__item");
             await this.closeBrowser();
             this.pageCount = Number(pageCount);
-            this.runScrapeProperties();
+            // this.runScrapeProperties();
+            this.runScrapeProperty();
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
@@ -48,21 +50,21 @@ export class Morizon extends Scraper {
                 matches.forEach(el => this.properties.push(`${baseURL.MORIZON.url}${el}`));
             }
             await this.closeBrowser();
-            this.runScrapeProperty();
+            this.runScrapeProperty(this.properties);
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
     }
 
-    private async runScrapeProperty() {
+    private async runScrapeProperty(properties? : Array<string>) {
         try{
-            // let property = `https://www.morizon.pl/oferta/wynajem-mieszkanie-wroclaw-srodmiescie-jana-matejki-33m2-mzn2041951482`;
-            // let property = this.properties[0];
-            const excelHelper = new CsvHelper();
-            excelHelper.addHeaderRow();
+            let property = [`https://www.morizon.pl/oferta/wynajem-mieszkanie-wroclaw-srodmiescie-jana-matejki-33m2-mzn2041951482`];
+            // let property = this.properties;
+            this.excelHelper.addHeaderRow();
             await this.launchBrowser({headless: "new"});
             let propertyCounter: number = 0;
-            for(const propertyData of this.properties) {
+            // for(const propertyData of properties) {
+            for(const propertyData of property) {
                 propertyCounter++;
                 this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
                 const html = await this.fetchHtmlWithPuppeteer(propertyData);
@@ -125,14 +127,15 @@ export class Morizon extends Scraper {
     
                 // URL
                 this.Property.urlToProperty = propertyData;
-                excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
-                excelHelper.saveExcelFile(this.Property.scraper as string);
+                this.excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
+                await this.excelHelper.saveExcelFile(this.Property.scraper as string);
             }
             await this.closeBrowser();
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
 
+        
     }
 
     // SCRAPE EVERY URL
