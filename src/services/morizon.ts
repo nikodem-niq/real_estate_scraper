@@ -137,6 +137,15 @@ export class Morizon extends Scraper {
 
         
     }
+    public async rescrapePropertiesFromExcel() {
+        try {
+            const dataToRescrape = await this.excelHelper.readExcelFile(baseURL.MORIZON.name, {cell: 'M'});
+            console.log(dataToRescrape)
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
+
+    }
 
     // SCRAPE EVERY URL
 }
