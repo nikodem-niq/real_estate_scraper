@@ -2,7 +2,9 @@ export interface IHttpClient {
     get(url: string): Promise<string>;
 }
 
-export type WhichScraperFrom = "OTODOM" | "unknown";
+export type WhichScraperFrom = "OTODOM" | "MORIZON" | "unknown";
+
+
 export type PropertyType = "mieszkanie" | "dom" | "unknown";
 export type PropertyOwnerType = "private" | "developer" | "unknown";
 export interface IProperty {
@@ -38,9 +40,11 @@ export interface OtodomSettings {
     areaLow?: number;
     areaHigh?: number;
 }
-type MorizonSettingType = OtodomSettingType;
+type MorizonSettingType = "sale" | "rent";
+type MorizonPropertySettingType = "mieszkania" | "domy";
 export interface MorizonSettings {
     city: string;
+    propertyType: MorizonPropertySettingType;
     type: MorizonSettingType;
     priceLow?: number;
     priceHigh?: number;

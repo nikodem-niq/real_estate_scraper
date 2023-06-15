@@ -36,7 +36,8 @@ export class Otodom extends Scraper {
 
     async runScrapeProperties() {
         try {
-            for(let i=1; i<=1; i++) {
+            // for(let i=1; i<=this.pageCount; i++) {
+            for(let i=1; i<=this.pageCount; i++) {
                 this.url = `${this.url}&page=${i}`;
                 await this.fetchHtml(this.url);
                 this.logHelper.log(`Fetching OTODOM properties, current progress: ${i}/${this.pageCount} sites`, "log")

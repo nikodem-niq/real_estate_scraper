@@ -26,6 +26,16 @@ export class Scraper extends Property {
     }
   }
 
+  async fetchHtmlWithPuppeteer(url: string) : Promise<string> {
+    if(!this.browser) {
+      throw new Error('Browser not launched. Call launchBrowser() first.');
+    }
+    const page = await this.browser.newPage();
+    await page.goto(url);
+    const html = await page.content();  
+    return html;
+  }
+
   getElementText(selector: string): string {
     const $ = cheerio.load(this.html);
     return $(selector).text();
