@@ -18,9 +18,9 @@ export class Otodom extends Scraper {
         this.searchSettings = settings;
     }
 
-    logHelper = new Logger(baseURL.OTODOM.name as string);
+    private logHelper = new Logger(baseURL.OTODOM.name as string);
 
-    async initScrape() {
+    public async initScrape() {
         try {
             const { city, type, areaHigh, areaLow, priceHigh, priceLow } = this.searchSettings;
             this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}`
@@ -34,7 +34,7 @@ export class Otodom extends Scraper {
         }
     }
 
-    async runScrapeProperties() {
+    private async runScrapeProperties() {
         try {
             // for(let i=1; i<=this.pageCount; i++) {
             for(let i=1; i<=this.pageCount; i++) {
@@ -53,7 +53,7 @@ export class Otodom extends Scraper {
         }
     }
 
-    async runScrapeProperty() {
+    private async runScrapeProperty() {
         try{
             const excelHelper = new CsvHelper();
             excelHelper.addHeaderRow();

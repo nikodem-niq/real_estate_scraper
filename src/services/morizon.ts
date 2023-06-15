@@ -18,9 +18,9 @@ export class Morizon extends Scraper {
         this.searchSettings = settings;
     }
 
-    logHelper = new Logger(baseURL.MORIZON.name as string);
+    private logHelper = new Logger(baseURL.MORIZON.name as string);
 
-    async initScrape() {
+    public async initScrape() {
         try{
             const { city, propertyType, type, areaHigh, areaLow, priceHigh, priceLow } = this.searchSettings;
             this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${propertyType == 'domy' ? '/domy/' : '/mieszkania/'}${city}?${areaLow ? 'ps%5Bliving_area_from%5D='+areaLow : ''}&${areaHigh ? 'ps%5Bliving_area_to%5D='+areaHigh : ''}&${priceLow ? 'ps%5Bprice_from%5D='+priceLow : ''}&${priceHigh ? 'ps%5Bprice_to%5D='+priceHigh : ''}`
@@ -36,7 +36,7 @@ export class Morizon extends Scraper {
         }
     }
 
-    async runScrapeProperties() {
+    private async runScrapeProperties() {
         try{
             await this.launchBrowser({headless: "new"});
             for(let i=1; i<=this.pageCount; i++) {
@@ -54,7 +54,7 @@ export class Morizon extends Scraper {
         }
     }
 
-    async runScrapeProperty() {
+    private async runScrapeProperty() {
         try{
             // let property = `https://www.morizon.pl/oferta/wynajem-mieszkanie-wroclaw-srodmiescie-jana-matejki-33m2-mzn2041951482`;
             // let property = this.properties[0];
@@ -73,28 +73,28 @@ export class Morizon extends Scraper {
                 // Property type
                 this.Property.type = this.searchSettings.propertyType === "domy" ? 'dom' : 'mieszkanie' || "unknown";
     
-                // Street
+                // Street 
                 const streetMatch = html.match(/<span class="main-location".*?>([\s\S]*?)<\/span>/);
                 if(/<span class="main-location".*?>([\s\S]*?)<\/span>/.test(html) && streetMatch !== null && streetMatch[1]) {
                     this.Property.street = streetMatch[1].trim() || "unknown";
                 }
     
                 // Phone number
-                const phoneNumberMatch = html.match(/(\d{3} \d{3} \d{3})/);
-                if(/(\d{3} \d{3} \d{3})/.test(html) && phoneNumberMatch !== null && phoneNumberMatch[1]) {
-                    console.log(phoneNumberMatch[1])
-                    this.Property.phoneNumber = phoneNumberMatch[1].replaceAll(/\s/g, '') || "unknown";
+                const phoneNumberMatch = html.match(/tel:\b(?:\d+\s*)+\b/);
+                if(/tel:\b(?:\d+\s*)+\b/.test(html) && phoneNumberMatch !== null) {
+                    // console.log(phoneNumberMatch)
+                    this.Property.phoneNumber = phoneNumberMatch[0].replaceAll(/\s/g, '').slice(4) || "unknown";
                 }
     
                 // City
-                const cityMatch = html.match(/<span data-v-2e1d2382="">\s*(.*?)\s*,\s*<\/span>/);
-                if(/<span data-v-2e1d2382="">\s*(.*?)\s*,\s*<\/span>/.test(html) && cityMatch !== null && cityMatch[1]) {
+                const cityMatch = html.match(/<span [^>]*[^>]*>\s*(.*?)\s*,\s*<\/span>/);
+                if(/<span [^>]*>\s*(.*?)\s*,\s*<\/span>/.test(html) && cityMatch !== null && cityMatch[1]) {
                     this.Property.city = cityMatch[1].trim() || "unknown";
                 }
     
                 // Area
-                const areaMatch = html.match(/(\d+)\s*m\s*<sup[^>]*>\s*2\s*<\/sup>/);
-                if(/(\d+)\s*m\s*<sup[^>]*>\s*2\s*<\/sup>/.test(html) && areaMatch !== null && areaMatch[1]) {
+                const areaMatch = html.match(/(\d+(?:,\d+)?)\s*m(?:²|²?|<sup[^>]*>\s*2\s*<\/sup>)/);
+                if(/(\d+(?:,\d+)?)\s*m(?:²|²?|<sup[^>]*>\s*2\s*<\/sup>)/.test(html) && areaMatch !== null && areaMatch[1]) {
                     this.Property.area = Number(areaMatch[1].replaceAll(/\s/g, '')) || 0;
                 }
     
@@ -105,20 +105,21 @@ export class Morizon extends Scraper {
                 }
     
                 // Price for metre
-                const priceForMetreMatch = html.match(/(\d+)\s*zł\/m\s*<sup[^>]*>\s*2\s*<\/sup>/);
-                if(/(\d+)\s*zł\/m\s*<sup[^>]*>\s*2\s*<\/sup>/.test(html) && priceForMetreMatch !== null && priceForMetreMatch[1]) {
+                const priceForMetreMatch = html.match(/(\b(?:\d+\s*)+\b) (?:zł\/m²)/);
+                if(/(\b(?:\d+\s*)+\b) (?:zł\/m²)/.test(html) && priceForMetreMatch !== null && priceForMetreMatch[1]) {
                     this.Property.priceForMetre = Number(priceForMetreMatch[1].replaceAll(/\s/g, '')) || 0;
                 }
     
                 // Price for metre
-                const ownerNameMatch = html.match(/<span[^>]*class="contact-person__name"[^>]*>([^<]*)<\/span>/);
-                if(/<span[^>]*class="contact-person__name"[^>]*>([^<]*)<\/span>/.test(html) && ownerNameMatch !== null && ownerNameMatch[1]) {
+                const ownerNameMatch = html.match(/<span[^>]*class="(?:contact-person__name|contact-company__name contact-company__name--development)"[^>]*>([^<]*)<\/span>/);
+                if(/<span[^>]*class="(?:contact-person__name|contact-company__name contact-company__name--development)"[^>]*>([^<]*)<\/span>/.test(html) && ownerNameMatch !== null) {
+                    // console.log(ownerNameMatch)
                     this.Property.ownerName = ownerNameMatch[1].trim() || "unknown";
                 }
     
                 // Owner type
-                const ownerType = html.match(/<span[^>]*class="contact-person__position"[^>]*>([^<]*)<\/span>/);
-                if(/<span[^>]*class="contact-person__position"[^>]*>([^<]*)<\/span>/.test(html) && ownerType !== null && ownerType[1]) {
+                const ownerType = html.match(/<(?:span|div)[^>]*class="(?:contact-person__position|contact-company__type)"[^>]*>([^<]*)<\/(?:span|div)/);
+                if(/<(?:span|div)[^>]*class="(?:contact-person__position|contact-company__type)"[^>]*>([^<]*)<\/(?:span|div)/.test(html) && ownerType !== null && ownerType[1]) {
                     this.Property.ownerType = ownerType[1].trim() == 'osoba prywatna' ? 'private' : 'developer' || "unknown";
                 }
     
@@ -126,7 +127,6 @@ export class Morizon extends Scraper {
                 this.Property.urlToProperty = propertyData;
                 excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
                 excelHelper.saveExcelFile(this.Property.scraper as string);
-                console.log(this.Property.propertyData)
             }
             await this.closeBrowser();
         } catch(error) {
