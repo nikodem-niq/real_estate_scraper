@@ -19,6 +19,8 @@ export class Otodom extends Scraper {
     }
 
     private logHelper = new Logger(baseURL.OTODOM.name as string);
+    private excelHelper = new CsvHelper();
+
 
     public async initScrape() {
         try {
@@ -28,7 +30,8 @@ export class Otodom extends Scraper {
             await this.fetchHtml(this.url)
             const pageCount = this.html.match(/"page_count":\d{1,}/gm);
             this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
-            this.runScrapeProperties();
+            // this.runScrapeProperties();
+            this.runScrapeProperty();
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
@@ -55,10 +58,13 @@ export class Otodom extends Scraper {
 
     private async runScrapeProperty() {
         try{
-            const excelHelper = new CsvHelper();
-            excelHelper.addHeaderRow();
+            this.excelHelper.addHeaderRow();
             let propertyCounter: number = 0;
-            for(const propertyData of this.properties) {
+
+            let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
+
+            // for(const propertyData of this.properties) {
+            for(const propertyData of property) {
                 propertyCounter++;
                 this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
                 // const testProperty = this.properties[0];
@@ -79,9 +85,37 @@ export class Otodom extends Scraper {
                 this.Property.phoneNumber = ad.owner?.phones[0] || "unknown";
                 this.Property.ownerName = ad.owner?.name || "unknown";
                 this.Property.urlToProperty = ad.url || "unknown";
-                excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
-                excelHelper.saveExcelFile(this.Property.scraper as string);
+
+                this.excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
+                this.excelHelper.saveExcelFile(this.Property.scraper as string);
             }
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
+
+    }
+
+    public async rescrapePropertiesFromExcel() {
+        try {
+            const unavailableProperties : Array<string> = [] 
+            const dataToRescrape = await this.excelHelper.readExcelFile(baseURL.OTODOM.name, {cell: 'M'});
+            
+            if(dataToRescrape) {
+                for(const property of dataToRescrape) {
+                    let html;
+                    if(property !== null && typeof property === 'object' && 'text' in property) {
+                        html = await this.fetchHtml(property.text);
+                    } else {
+                        html = await this.fetchHtml(property as string);
+                    }
+                    const propertyAvailability = html.match(/To og.oszenie nie jest ju. dost.pne./);
+                    if(/To og.oszenie nie jest ju. dost.pne./.test(html) && propertyAvailability) {
+                        unavailableProperties.push(property as string);
+                    }
+                }
+            }
+            this.excelHelper.highlightExpiredProperties(baseURL.OTODOM.name, unavailableProperties)
+            console.log(`done rescraping ;)`)
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }

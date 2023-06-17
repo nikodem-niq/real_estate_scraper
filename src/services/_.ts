@@ -17,9 +17,10 @@ export class Scraper extends Property {
     this.httpClient = new HttpClient();
   }
 
-  async fetchHtml(url: string): Promise<void> {
+  async fetchHtml(url: string): Promise<string> {
     try {
       this.html = await this.httpClient.get(url);
+      return this.html;
     } catch (error) {
       console.error(`Error fetching HTML from ${url}:`, error);
       throw error;
