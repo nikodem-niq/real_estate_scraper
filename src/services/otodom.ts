@@ -1,0 +1,126 @@
+import { baseURL } from "../constants/config";
+import { Scraper } from "./_";
+import { IProperty, OtodomSettings, WhichScraperFrom } from "../constants/interfaces";
+import { CsvHelper } from "../helpers/csvHelper";
+import { Logger } from "../helpers/loggerHelper";
+
+export class Otodom extends Scraper { 
+    private saleExtendedUrl : string = baseURL.OTODOM.url+'/oferty/sprzedaz/mieszkanie/';
+    private rentExtendedUrl : string = baseURL.OTODOM.url+'/oferty/wynajem/mieszkanie/';
+    private propertyUrl : string = baseURL.OTODOM.url+'/oferta/';
+    private searchSettings : OtodomSettings;
+    private pageCount: number = 0;
+    private url: string = '';
+    private properties: Array<string> = [];
+
+    constructor(settings: OtodomSettings) {
+        super();
+        this.searchSettings = settings;
+    }
+
+    private logHelper = new Logger(baseURL.OTODOM.name as string);
+    private excelHelper = new CsvHelper();
+
+
+    public async initScrape() {
+        try {
+            const { city, type, areaHigh, areaLow, priceHigh, priceLow } = this.searchSettings;
+            this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}`
+            this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log")
+            await this.fetchHtml(this.url)
+            const pageCount = this.html.match(/"page_count":\d{1,}/gm);
+            this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
+            // this.runScrapeProperties();
+            this.runScrapeProperty();
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
+    }
+
+    private async runScrapeProperties() {
+        try {
+            // for(let i=1; i<=this.pageCount; i++) {
+            for(let i=1; i<=this.pageCount; i++) {
+                this.url = `${this.url}&page=${i}`;
+                await this.fetchHtml(this.url);
+                this.logHelper.log(`Fetching OTODOM properties, current progress: ${i}/${this.pageCount} sites`, "log")
+                const siteData = JSON.parse(this.getElementText("#__NEXT_DATA__"));
+                const { props : { pageProps : { data : { searchAds : { items }}}}} = siteData
+                for(const propertyData of items) {
+                    this.properties.push(`${this.propertyUrl}${propertyData.slug}`)
+                }
+            }
+            this.runScrapeProperty();
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
+    }
+
+    private async runScrapeProperty() {
+        try{
+            this.excelHelper.addHeaderRow();
+            let propertyCounter: number = 0;
+
+            let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
+
+            // for(const propertyData of this.properties) {
+            for(const propertyData of property) {
+                propertyCounter++;
+                this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
+                // const testProperty = this.properties[0];
+                await this.fetchHtml(propertyData);
+                const propertyJSON = JSON.parse(this.getElementText("#__NEXT_DATA__"));
+                const { ad, ad: { target } } = propertyJSON.props.pageProps;
+                // Set property values
+                this.Property.scraper = baseURL.OTODOM.name as WhichScraperFrom;
+                this.Property.type = target.ProperType || "unknown";
+                this.Property.city = target.City || "unknown";
+                this.Property.street = ad.location?.address?.street?.name || "unknown";
+                this.Property.area = target.Area || 0;
+                this.Property.priceForMetre = target.Price_per_m || 0;
+                this.Property.fullPrice = target.Price || 0;
+                this.Property.ownerType = target.user_type || "unknown"
+                this.Property.propertyCondition = "unknown";
+                this.Property.standard = "unknown";
+                this.Property.phoneNumber = ad.owner?.phones[0] || "unknown";
+                this.Property.ownerName = ad.owner?.name || "unknown";
+                this.Property.urlToProperty = ad.url || "unknown";
+
+                this.excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
+                this.excelHelper.saveExcelFile(this.Property.scraper as string);
+            }
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
+
+    }
+
+    public async rescrapePropertiesFromExcel() {
+        try {
+            const unavailableProperties : Array<string> = [] 
+            const dataToRescrape = await this.excelHelper.readExcelFile(baseURL.OTODOM.name, {cell: 'M'});
+            
+            if(dataToRescrape) {
+                for(const property of dataToRescrape) {
+                    let html;
+                    if(property !== null && typeof property === 'object' && 'text' in property) {
+                        html = await this.fetchHtml(property.text);
+                    } else {
+                        html = await this.fetchHtml(property as string);
+                    }
+                    const propertyAvailability = html.match(/To og.oszenie nie jest ju. dost.pne./);
+                    if(/To og.oszenie nie jest ju. dost.pne./.test(html) && propertyAvailability) {
+                        unavailableProperties.push(property as string);
+                    }
+                }
+            }
+            this.excelHelper.highlightExpiredProperties(baseURL.OTODOM.name, unavailableProperties)
+            console.log(`done rescraping ;)`)
+        } catch(error) {
+            this.logHelper.log(error as string, "error");
+        }
+
+    }
+
+    // SCRAPE EVERY URL
+}
