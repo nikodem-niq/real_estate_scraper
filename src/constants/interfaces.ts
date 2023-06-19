@@ -32,9 +32,11 @@ export interface ScraperURLSettings {
 }
 
 type OtodomSettingType = "sale" | "rent";
+type OwnerTypeSearching = "DEVELOPER" | "PRIVATE";
 export interface OtodomSettings {
     city: string;
     type: OtodomSettingType;
+    ownerTypeSearching: OwnerTypeSearching; 
     priceLow?: number;
     priceHigh?: number;
     areaLow?: number;

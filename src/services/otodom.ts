@@ -24,14 +24,14 @@ export class Otodom extends Scraper {
 
     public async initScrape() {
         try {
-            const { city, type, areaHigh, areaLow, priceHigh, priceLow } = this.searchSettings;
-            this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}`
+            const { city, type, areaHigh, areaLow, priceHigh, priceLow, ownerTypeSearching } = this.searchSettings;
+            this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}&${ownerTypeSearching ? 'ownerTypeSingleSelect='+ownerTypeSearching : ''}`
             this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log")
             await this.fetchHtml(this.url)
             const pageCount = this.html.match(/"page_count":\d{1,}/gm);
             this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
-            // this.runScrapeProperties();
-            this.runScrapeProperty();
+            this.runScrapeProperties();
+            // this.runScrapeProperty();
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
@@ -63,8 +63,8 @@ export class Otodom extends Scraper {
 
             let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
 
-            // for(const propertyData of this.properties) {
-            for(const propertyData of property) {
+            for(const propertyData of this.properties) {
+            // for(const propertyData of property) {
                 propertyCounter++;
                 this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
                 // const testProperty = this.properties[0];
@@ -99,12 +99,22 @@ export class Otodom extends Scraper {
         try {
             const unavailableProperties : Array<string> = [] 
             const dataToRescrape = await this.excelHelper.readExcelFile(baseURL.OTODOM.name, {cell: 'M'});
+            // console.log(dataToRescrape)
+
             
             if(dataToRescrape) {
+                let propCounter: number = 0;
                 for(const property of dataToRescrape) {
-                    let html;
+                    propCounter++;
+                    this.logHelper.log(`Scraping progress: ${Math.ceil(propCounter/dataToRescrape.length*100)}%`, "log")
+                    let html: string = '';
                     if(property !== null && typeof property === 'object' && 'text' in property) {
-                        html = await this.fetchHtml(property.text);
+                        html = await this.fetchHtml(property.text as string);
+                    } else if(property !== null && typeof property === 'object' && 'formula' in property && property.formula && /HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i.test(property.formula)) {
+                        const matchedHtml = property.formula.match(/HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i);
+                        if(matchedHtml) {
+                            html = await this.fetchHtml(matchedHtml[1] as string)
+                        }
                     } else {
                         html = await this.fetchHtml(property as string);
                     }
@@ -116,6 +126,7 @@ export class Otodom extends Scraper {
             }
             this.excelHelper.highlightExpiredProperties(baseURL.OTODOM.name, unavailableProperties)
             console.log(`done rescraping ;)`)
+            console.log(unavailableProperties)
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }

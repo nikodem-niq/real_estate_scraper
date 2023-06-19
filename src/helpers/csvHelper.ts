@@ -91,7 +91,7 @@ export class CsvHelper {
     //     return -1; // Jeśli nagłówek nie został znaleziony, zwracamy -1
     //   }
     
-    async highlightExpiredProperties(fileName: string, expiredProperties: Array<string>) {
+    async highlightExpiredProperties(fileName: string, expiredProperties: Array<any>) {
         await this.workbook.xlsx.readFile(this.absolutePath+fileName+'.xlsx');
         const worksheet = this.workbook.getWorksheet('Scraper');
         // const urlColumnIndex = this.findColumnIndexByHeader(worksheet, 'URL do nieruchomości');
@@ -104,9 +104,8 @@ export class CsvHelper {
             let cellValue = cell.value as string;
             if(cell.value !== null && typeof cell.value === 'object' && 'text' in cell.value) {
                 cellValue = cell.value.text as string;
-            }
-
-                if (cellValue.includes(expiredProperty)) {
+                if (cellValue.includes(expiredProperty as string)) {
+                    console.log(`dzieje sie cos?????  A`)
                     // Zmieniamy kolor komórki w całym wierszu na czerwony
                     row.eachCell((cell) => {
                       const fill = {
@@ -118,6 +117,39 @@ export class CsvHelper {
                       cell.fill = fill;
                     });
                   }
+            } else if(cell.value !== null && typeof cell.value === 'object' && 'formula' in cell.value && (cell.value.formula) && (cell.value.result) && /HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i.test(cell.value.formula)) {
+                cellValue = cell.value.result as string;
+                if(expiredProperty) {
+                    if (cellValue.includes(expiredProperty.result)) {
+                        console.log(`dzieje sie cos?????  B`)
+                        // Zmieniamy kolor komórki w całym wierszu na czerwony
+                        console.log(rowNumber)
+                        row.eachCell((cell) => {
+                          const fill = {
+                            type: "pattern",
+                            pattern: "solid",
+                            fgColor: { argb: "FFFF0000" }, // red
+                          } as Fill;
+                  
+                          cell.fill = fill;
+                        });
+                      }
+                }
+            } else {
+                if (cellValue.includes(expiredProperty as string)) {
+                    console.log(`dzieje sie cos????? C`)
+                    // Zmieniamy kolor komórki w całym wierszu na czerwony
+                    row.eachCell((cell) => {
+                      const fill = {
+                        type: "pattern",
+                        pattern: "solid",
+                        fgColor: { argb: "FFFF0000" }, // red
+                      } as Fill;
+              
+                      cell.fill = fill;
+                    });
+                  }
+            }
 
         })};
         await this.workbook.xlsx.writeFile(this.absolutePath + fileName + '.xlsx');
