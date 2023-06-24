@@ -26,9 +26,10 @@ export class Otodom extends Scraper {
         try {
             const { city, type, areaHigh, areaLow, priceHigh, priceLow, ownerTypeSearching } = this.searchSettings;
             this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}&${ownerTypeSearching ? 'ownerTypeSingleSelect='+ownerTypeSearching : ''}`
-            this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log")
-            await this.fetchHtml(this.url)
-            const pageCount = this.html.match(/"page_count":\d{1,}/gm);
+            this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log");
+            const res = await this.fetchHtml(this.url) as Response;
+            this._html = await res.text() as unknown as string;
+            const pageCount = this._html.match(/"page_count":\d{1,}/gm);
             this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
             this.runScrapeProperties();
             // this.runScrapeProperty();
@@ -42,7 +43,8 @@ export class Otodom extends Scraper {
             // for(let i=1; i<=this.pageCount; i++) {
             for(let i=1; i<=this.pageCount; i++) {
                 this.url = `${this.url}&page=${i}`;
-                await this.fetchHtml(this.url);
+                const res = await this.fetchHtml(this.url) as Response;
+                this._html = await res.text() as unknown as string;
                 this.logHelper.log(`Fetching OTODOM properties, current progress: ${i}/${this.pageCount} sites`, "log")
                 const siteData = JSON.parse(this.getElementText("#__NEXT_DATA__"));
                 const { props : { pageProps : { data : { searchAds : { items }}}}} = siteData
@@ -61,14 +63,15 @@ export class Otodom extends Scraper {
             this.excelHelper.addHeaderRow();
             let propertyCounter: number = 0;
 
-            let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
+            // let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
 
             for(const propertyData of this.properties) {
             // for(const propertyData of property) {
                 propertyCounter++;
                 this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
                 // const testProperty = this.properties[0];
-                await this.fetchHtml(propertyData);
+                const res = await this.fetchHtml(propertyData) as Response;
+                this._html = await res.text() as unknown as string;
                 const propertyJSON = JSON.parse(this.getElementText("#__NEXT_DATA__"));
                 const { ad, ad: { target } } = propertyJSON.props.pageProps;
                 // Set property values
@@ -97,36 +100,10 @@ export class Otodom extends Scraper {
 
     public async rescrapePropertiesFromExcel() {
         try {
-            const unavailableProperties : Array<string> = [] 
             const dataToRescrape = await this.excelHelper.readExcelFile(baseURL.OTODOM.name, {cell: 'M'});
-            // console.log(dataToRescrape)
-
-            
-            if(dataToRescrape) {
-                let propCounter: number = 0;
-                for(const property of dataToRescrape) {
-                    propCounter++;
-                    this.logHelper.log(`Scraping progress: ${Math.ceil(propCounter/dataToRescrape.length*100)}%`, "log")
-                    let html: string = '';
-                    if(property !== null && typeof property === 'object' && 'text' in property) {
-                        html = await this.fetchHtml(property.text as string);
-                    } else if(property !== null && typeof property === 'object' && 'formula' in property && property.formula && /HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i.test(property.formula)) {
-                        const matchedHtml = property.formula.match(/HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i);
-                        if(matchedHtml) {
-                            html = await this.fetchHtml(matchedHtml[1] as string)
-                        }
-                    } else {
-                        html = await this.fetchHtml(property as string);
-                    }
-                    const propertyAvailability = html.match(/To og.oszenie nie jest ju. dost.pne./);
-                    if(/To og.oszenie nie jest ju. dost.pne./.test(html) && propertyAvailability) {
-                        unavailableProperties.push(property as string);
-                    }
-                }
-            }
-            this.excelHelper.highlightExpiredProperties(baseURL.OTODOM.name, unavailableProperties)
+            const unavailableProperties = await this.checkAvailabilityOfProperty(baseURL.OTODOM.name, dataToRescrape, this.logHelper)
             console.log(`done rescraping ;)`)
-            console.log(unavailableProperties)
+            this.excelHelper.highlightExpiredProperties(baseURL.OTODOM.name, unavailableProperties);
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }

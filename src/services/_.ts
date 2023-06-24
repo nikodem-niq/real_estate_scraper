@@ -17,10 +17,22 @@ export class Scraper extends Property {
     this.httpClient = new HttpClient();
   }
 
-  async fetchHtml(url: string): Promise<string> {
+  
+  public get _html() : string {
+    return this.html;
+  }
+
+  
+  public set _html(v : string) {
+    this.html = v;
+  }
+  
+  
+
+  async fetchHtml(url: string): Promise<Response|string> {
     try {
-      this.html = await this.httpClient.get(url);
-      return this.html;
+      const response = await this.httpClient.get(url);
+      return response as Response;
     } catch (error) {
       console.error(`Error fetching HTML from ${url}:`, error);
       throw error;
@@ -115,5 +127,57 @@ export class Scraper extends Property {
     if (this.browser) {
       await this.browser.close();
     }
+  }
+
+  /**
+   * 
+   * @param scraperName
+   * @param dataToRescrape 
+   * @param logHelper 
+   * @returns 
+   */
+  public async checkAvailabilityOfProperty(scraperName: string, dataToRescrape: any, logHelper: any) : Promise<Array<string>> {
+    const unavailableProperties : Array<string> = [];
+    try {
+      
+      if(dataToRescrape) {
+        let propCounter: number = 0;
+        for(const property of dataToRescrape) {
+            // if(propCounter > 3) continue
+            propCounter++;
+            logHelper.log(`Re-scraping progress: ${Math.ceil(propCounter/dataToRescrape.length*100)}%`, "log")
+            if(property !== null && typeof property === 'object' && 'text' in property) {
+                const res = await this.fetchHtml(property.text) as Response;
+                this._html = await res.text() as unknown as string;
+                const actualUrl : string = res.url;
+                if(actualUrl != property.text) {
+                    unavailableProperties.push(property.text as string);
+                }
+            } else if(property !== null && typeof property === 'object' && 'formula' in property && property.formula && /HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i.test(property.formula)) {
+                const matchedHtml = property.formula.match(/HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i);
+                if(matchedHtml) {
+                    
+                    const res = await this.fetchHtml(matchedHtml[1] as string) as Response;
+                    this._html = await res.text() as unknown as string;
+                    const actualUrl : string = res.url;  
+                    if(actualUrl != matchedHtml[1]) {
+                        unavailableProperties.push(matchedHtml[1] as string);
+                    }
+                }
+            } else {
+                const res = await this.fetchHtml(property as string) as Response;
+                this._html = await res.text() as unknown as string;
+                const actualUrl : string = res.url;
+                if(actualUrl != property) {
+                    unavailableProperties.push(property as string);
+                }
+            }
+        }
+      }
+    } catch(error) {
+      logHelper.log(error as string, "error");
+    }
+
+    return unavailableProperties
   }
 }

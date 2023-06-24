@@ -3,6 +3,7 @@ import { IProperty } from "../constants/interfaces";
 import { Cell, CellValue, Fill, Workbook, Worksheet } from "exceljs";
 import { mkdirSync, existsSync } from "fs";
 import { Logger } from "./loggerHelper";
+import { inspect } from "util";
 
 export class CsvHelper {
     private workbook;
@@ -91,67 +92,38 @@ export class CsvHelper {
     //     return -1; // Jeśli nagłówek nie został znaleziony, zwracamy -1
     //   }
     
+    /**
+     * 
+     * @param fileName 
+     * @param expiredProperties 
+     */
     async highlightExpiredProperties(fileName: string, expiredProperties: Array<any>) {
+
+        console.log(expiredProperties)
         await this.workbook.xlsx.readFile(this.absolutePath+fileName+'.xlsx');
         const worksheet = this.workbook.getWorksheet('Scraper');
-        // const urlColumnIndex = this.findColumnIndexByHeader(worksheet, 'URL do nieruchomości');
         const urlColumnIndex = 'M'
 
-        for(const expiredProperty of expiredProperties) {
         worksheet.eachRow((row, rowNumber) => {
-            if(rowNumber === 1) return;
-            const cell = row.getCell(urlColumnIndex);
-            let cellValue = cell.value as string;
-            if(cell.value !== null && typeof cell.value === 'object' && 'text' in cell.value) {
-                cellValue = cell.value.text as string;
-                if (cellValue.includes(expiredProperty as string)) {
-                    console.log(`dzieje sie cos?????  A`)
-                    // Zmieniamy kolor komórki w całym wierszu na czerwony
-                    row.eachCell((cell) => {
-                      const fill = {
-                        type: "pattern",
-                        pattern: "solid",
-                        fgColor: { argb: "FFFF0000" }, // red
-                      } as Fill;
-              
-                      cell.fill = fill;
-                    });
-                  }
-            } else if(cell.value !== null && typeof cell.value === 'object' && 'formula' in cell.value && (cell.value.formula) && (cell.value.result) && /HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i.test(cell.value.formula)) {
-                cellValue = cell.value.result as string;
-                if(expiredProperty) {
-                    if (cellValue.includes(expiredProperty.result)) {
-                        console.log(`dzieje sie cos?????  B`)
-                        // Zmieniamy kolor komórki w całym wierszu na czerwony
-                        console.log(rowNumber)
-                        row.eachCell((cell) => {
-                          const fill = {
-                            type: "pattern",
-                            pattern: "solid",
-                            fgColor: { argb: "FFFF0000" }, // red
-                          } as Fill;
-                  
-                          cell.fill = fill;
-                        });
-                      }
+            const cellValue : CellValue = row.getCell(urlColumnIndex).value;
+            if(cellValue !== null && typeof cellValue === 'object' && 'text' in cellValue) {
+                if(expiredProperties.includes(cellValue.text)) {
+                    console.log(cellValue, rowNumber)
+                    row.getCell('B').fill = { fgColor: { argb: 'FF556677' }, pattern: 'solid', type: 'pattern' };
+                }
+            } else if(cellValue !== null && typeof cellValue === 'object' && 'formula' in cellValue) {        
+                const matchedHtml = cellValue.formula?.match(/HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i);
+                if(matchedHtml && expiredProperties.includes(matchedHtml[1])) {
+                    console.log(cellValue, rowNumber)
+                    row.getCell('B').fill = { fgColor: { argb: 'FF556612' }, pattern: 'solid', type: 'pattern' };
                 }
             } else {
-                if (cellValue.includes(expiredProperty as string)) {
-                    console.log(`dzieje sie cos????? C`)
-                    // Zmieniamy kolor komórki w całym wierszu na czerwony
-                    row.eachCell((cell) => {
-                      const fill = {
-                        type: "pattern",
-                        pattern: "solid",
-                        fgColor: { argb: "FFFF0000" }, // red
-                      } as Fill;
-              
-                      cell.fill = fill;
-                    });
-                  }
+                if(expiredProperties.includes(cellValue)) {
+                    console.log(cellValue, rowNumber)
+                    row.getCell('B').fill = { fgColor: { argb: 'FF556612' }, pattern: 'solid', type: 'pattern' };
+                }
             }
-
-        })};
+        })
         await this.workbook.xlsx.writeFile(this.absolutePath + fileName + '.xlsx');
     }
 }

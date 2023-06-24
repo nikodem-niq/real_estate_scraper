@@ -1,5 +1,5 @@
 export interface IHttpClient {
-    get(url: string): Promise<string>;
+    get(url: string): Promise<any>;
 }
 
 export type WhichScraperFrom = "OTODOM" | "MORIZON" | "unknown";
