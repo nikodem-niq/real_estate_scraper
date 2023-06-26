@@ -33,7 +33,6 @@ export class Otodom extends Scraper implements IPropertyScraper {
             const pageCount = this._html.match(/"page_count":\d{1,}/gm);
             this.pageCount = pageCount ? Number(pageCount[0].slice(13,pageCount[0].length)) : 0
             this.runScrapeProperties();
-            // this.runScrapeProperty();
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
@@ -41,7 +40,6 @@ export class Otodom extends Scraper implements IPropertyScraper {
 
     public async runScrapeProperties() : Promise<void> {
         try {
-            // for(let i=1; i<=this.pageCount; i++) {
             for(let i=1; i<=this.pageCount; i++) {
                 this.url = `${this.url}&page=${i}`;
                 const res = await this.fetchHtml(this.url) as Response;
@@ -64,17 +62,15 @@ export class Otodom extends Scraper implements IPropertyScraper {
             this.excelHelper.addHeaderRow();
             let propertyCounter: number = 0;
 
-            // let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
             const randomizedIdOfFile = Math.floor(Math.random() * 9999);
             for(const propertyData of this.properties) {
-            // for(const propertyData of property) {
                 propertyCounter++;
                 this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
-                // const testProperty = this.properties[0];
                 const res = await this.fetchHtml(propertyData) as Response;
                 this._html = await res.text() as unknown as string;
                 const propertyJSON = JSON.parse(this.getElementText("#__NEXT_DATA__"));
                 const { ad, ad: { target } } = propertyJSON.props.pageProps;
+
                 // Set property values
                 this.Property.scraper = baseURL.OTODOM.name as WhichScraperFrom;
                 this.Property.type = target.ProperType || "unknown";
