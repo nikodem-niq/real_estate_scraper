@@ -1,6 +1,6 @@
 import { baseURL } from "../constants/config";
 import { Scraper } from "./_";
-import { IProperty, MorizonSettings, WhichScraperFrom } from "../constants/interfaces";
+import { IProperty, ScraperSettings, WhichScraperFrom } from "../constants/interfaces";
 import { CsvHelper } from "../helpers/csvHelper";
 import { Logger } from "../helpers/loggerHelper";
 
@@ -8,12 +8,12 @@ export class Morizon extends Scraper {
     private saleExtendedUrl : string = baseURL.MORIZON.url;
     private rentExtendedUrl : string = baseURL.MORIZON.url+'/do-wynajecia';
     private propertyUrl : string = baseURL.MORIZON.url+'/oferta/';
-    private searchSettings : MorizonSettings;
+    private searchSettings : ScraperSettings;
     private pageCount: number = 0;
     private url: string = '';
     private properties: Array<string> = [];
 
-    constructor(settings: MorizonSettings) {
+    constructor(settings: ScraperSettings) {
         super();
         this.searchSettings = settings;
     }

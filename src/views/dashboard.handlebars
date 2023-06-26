@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scraping Form</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .form-container .form-group {
+      flex-basis: 45%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Scraping Form</h1>
+    <div class="form-container">
+      <form action="/fetchProperties" method="POST">
+        <div class="form-group">
+          <label for="scraperName">Scraper Name:</label>
+          <select class="form-control" id="scraperName" name="scraperName">
+            <option value="otodom">Otodom</option>
+            <option disabled value="morizon">Morizon</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="city">City:</label>
+          <input type="text" required class="form-control" id="city" name="city">
+        </div>
+        <div class="form-group">
+          <label for="scraperName">Type:</label>
+          <select class="form-control" id="type" name="type">
+            <option value="sale">Sale</option>
+            <option value="rent">Rent</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ownerTypeSearching">Ownership:</label>
+          <select class="form-control" id="ownerTypeSearching" name="ownerTypeSearching">
+            <option value="DEVELOPER">Developer</option>
+            <option value="PRIVATE">Private</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="minPrice">Minimum Price:</label>
+          <input type="number" class="form-control" id="minPrice" name="minPrice">
+        </div>
+        <div class="form-group">
+          <label for="maxPrice">Maximum Price:</label>
+          <input type="number" class="form-control" id="maxPrice" name="maxPrice">
+        </div>
+        <div class="form-group">
+          <label for="minArea">Minimum Area:</label>
+          <input type="number" class="form-control" id="minArea" name="minArea">
+        </div>
+        <div class="form-group">
+          <label for="maxArea">Maximum Area:</label>
+          <input type="number" class="form-control" id="maxArea" name="maxArea">
+        </div>
+        <button type="submit" class="btn btn-primary">Scrape</button>
+      </form>
+      <form action="/rescrapeProperties" method="POST">
+        <div class="form-group">
+          <label required for="fileName">File Name:</label>
+          <input type="text" class="form-control" id="fileName" name="fileName">
+        </div>
+        <button type="submit" class="btn btn-primary">Rescraping</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

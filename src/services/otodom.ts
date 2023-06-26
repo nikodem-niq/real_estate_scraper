@@ -1,19 +1,20 @@
 import { baseURL } from "../constants/config";
 import { Scraper } from "./_";
-import { IProperty, OtodomSettings, WhichScraperFrom } from "../constants/interfaces";
+import { IProperty, IPropertyScraper, ScraperSettings, WhichScraperFrom } from "../constants/interfaces";
 import { CsvHelper } from "../helpers/csvHelper";
 import { Logger } from "../helpers/loggerHelper";
+import moment from "moment";
 
-export class Otodom extends Scraper { 
+export class Otodom extends Scraper implements IPropertyScraper { 
     private saleExtendedUrl : string = baseURL.OTODOM.url+'/oferty/sprzedaz/mieszkanie/';
     private rentExtendedUrl : string = baseURL.OTODOM.url+'/oferty/wynajem/mieszkanie/';
     private propertyUrl : string = baseURL.OTODOM.url+'/oferta/';
-    private searchSettings : OtodomSettings;
+    private searchSettings : ScraperSettings;
     private pageCount: number = 0;
     private url: string = '';
     private properties: Array<string> = [];
 
-    constructor(settings: OtodomSettings) {
+    constructor(settings: ScraperSettings) {
         super();
         this.searchSettings = settings;
     }
@@ -38,7 +39,7 @@ export class Otodom extends Scraper {
         }
     }
 
-    private async runScrapeProperties() {
+    public async runScrapeProperties() : Promise<void> {
         try {
             // for(let i=1; i<=this.pageCount; i++) {
             for(let i=1; i<=this.pageCount; i++) {
@@ -58,13 +59,13 @@ export class Otodom extends Scraper {
         }
     }
 
-    private async runScrapeProperty() {
+    public async runScrapeProperty() : Promise<void> {
         try{
             this.excelHelper.addHeaderRow();
             let propertyCounter: number = 0;
 
             // let property = [`https://www.otodom.pl/pl/oferta/mieszkanie-3-pokojowe-przy-metrze-kabaty-ID4kEfj`];
-
+            const randomizedIdOfFile = Math.floor(Math.random() * 9999);
             for(const propertyData of this.properties) {
             // for(const propertyData of property) {
                 propertyCounter++;
@@ -90,25 +91,11 @@ export class Otodom extends Scraper {
                 this.Property.urlToProperty = ad.url || "unknown";
 
                 this.excelHelper.addPropertyRow(this.Property.propertyData as IProperty)
-                this.excelHelper.saveExcelFile(this.Property.scraper as string);
+                this.excelHelper.saveExcelFile(`${this.Property.scraper}_${moment().format('MM.DD')}_${randomizedIdOfFile}` as string);
             }
         } catch(error) {
             this.logHelper.log(error as string, "error");
         }
 
     }
-
-    public async rescrapePropertiesFromExcel() {
-        try {
-            const dataToRescrape = await this.excelHelper.readExcelFile(baseURL.OTODOM.name, {cell: 'M'});
-            const unavailableProperties = await this.checkAvailabilityOfProperty(baseURL.OTODOM.name, dataToRescrape, this.logHelper)
-            console.log(`done rescraping ;)`)
-            this.excelHelper.highlightExpiredProperties(baseURL.OTODOM.name, unavailableProperties);
-        } catch(error) {
-            this.logHelper.log(error as string, "error");
-        }
-
-    }
-
-    // SCRAPE EVERY URL
 }

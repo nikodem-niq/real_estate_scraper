@@ -1,8 +1,12 @@
 import cheerio from 'cheerio';
 import HttpClient from '../http-client';
-import { IHttpClient } from '../constants/interfaces'
+import { IHttpClient, IPropertyScraper, ScraperSettings } from '../constants/interfaces'
 import { Property } from '../property/property';
 import puppeteer, { Browser, Page } from 'puppeteer';
+import { baseURL } from '../constants/config';
+import { Otodom } from './otodom';
+import { Logger } from '../helpers/loggerHelper';
+import { CsvHelper } from '../helpers/csvHelper';
 
 export class Scraper extends Property {
   public Property : Property;
@@ -16,7 +20,6 @@ export class Scraper extends Property {
     this.Property = new Property();
     this.httpClient = new HttpClient();
   }
-
   
   public get _html() : string {
     return this.html;
@@ -27,7 +30,39 @@ export class Scraper extends Property {
     this.html = v;
   }
   
-  
+  /**
+   * 
+   * if @param scraperName couldn't be find, Otodom will be scraped
+   * 
+   * @param scraperName 
+   * @param settings 
+   * @returns 
+   */
+  static createScraper(scraperName: string, settings: ScraperSettings) : IPropertyScraper {
+    try {
+      switch(scraperName) {
+        case baseURL.OTODOM.name:
+          return new Otodom(settings);
+        default:
+          return new Otodom(settings);
+      }
+    } catch(error) {
+      throw error;
+    }
+  }
+
+  public async rescrapePropertiesFromExcel(fileName: string) : Promise<void> {
+    const logHelper = new Logger(fileName as string);
+    const excelHelper = new CsvHelper();
+    try {
+        const dataToRescrape = await excelHelper.readExcelFile(fileName, {cell: 'M'});
+        const unavailableProperties = await this.checkAvailabilityOfProperty(fileName, dataToRescrape, logHelper)
+        excelHelper.highlightExpiredProperties(fileName, unavailableProperties);
+    } catch(error) {
+        logHelper.log(error as string, "error");
+    }
+
+}
 
   async fetchHtml(url: string): Promise<Response|string> {
     try {
