@@ -72,12 +72,13 @@ export interface ScraperURLSettings {
 
 type ScraperSettingType = "sale" | "rent";
 type ScraperOwnerTypeSearching = "DEVELOPER" | "PRIVATE";
-type PropertySettingType = "mieszkania" | "domy";
+type OtodomPropertySettingType = "mieszkanie" | "dom" | "kawalerka" | "inwestycja" | "pokoj" | "dzialka" | "lokal" | "haleimagazyny" | "garaz";
+type MorizonPropertySettingType = "mieszkania" | "domy";
 export interface ScraperSettings {
     city: string;
     type: ScraperSettingType;
     ownerTypeSearching?: ScraperOwnerTypeSearching; 
-    propertyType?: PropertySettingType; 
+    propertyType?: OtodomPropertySettingType | MorizonPropertySettingType; 
     priceLow?: number;
     priceHigh?: number;
     areaLow?: number;

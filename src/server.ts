@@ -33,6 +33,7 @@ export class Server {
       try{
         const scraperName = req.body.scraperName;
         const city = req.body.city;
+        // const propertyType = req.body.propertyType;
         const type = req.body.type;
         const ownerTypeSearching = req.body.ownerTypeSearching;
         const minPrice = req.body.minPrice;

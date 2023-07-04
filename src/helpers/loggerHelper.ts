@@ -21,6 +21,6 @@ export class Logger {
         if(!existsSync(this.absolutePath)) {
             mkdirSync(this.absolutePath, {recursive: true});
         }
-        await appendFile(`${path}${this.fileName}.${moment().format('YYYY.MM.DD_HH.mm')}.log`, `${moment().format('YYYY.MM.DD_HH:mm')} -- ${message.toString()}\n`);
+        await appendFile(`${path}${this.fileName}.${moment().format('YYYY.MM.DD')}.log`, `${moment().format('YYYY.MM.DD_HH:mm:ss')} -- ${message.toString()}\n`);
     }
 }
