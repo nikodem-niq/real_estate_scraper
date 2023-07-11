@@ -6,11 +6,15 @@
   <style>
     body {
       background-color: #f8f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
 
     .container {
       max-width: 600px;
-      margin: auto;
       padding: 20px;
       background-color: #fff;
       border-radius: 5px;
@@ -20,16 +24,34 @@
     .form-container {
       display: flex;
       justify-content: space-between;
+      margin-top: 20px;
     }
 
-    .form-container .form-group {
+    .form-container form {
       flex-basis: 45%;
+    }
+
+    .form-container button {
+      margin-top: 10px;
+    }
+
+    /* Media query dla mniejszych ekranów */
+    @media (max-width: 768px) {
+      .form-container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .form-container form {
+        margin-bottom: 20px;
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container mt-5">
-    <h1>Scraping Form</h1>
+  <div class="container">
+    <h1 class="text-center mb-4">Scraper v1</h1>
     <div class="form-container">
       <form action="/fetchProperties" method="POST">
         <div class="form-group">
@@ -50,7 +72,7 @@
             <option value="rent">Rent</option>
           </select>
         </div>
-        {{!-- <div class="form-group">
+        <div class="form-group">
           <label for="propertyType">Property type:</label>
           <select class="form-control" id="propertyType" name="propertyType">
             <option value="mieszkanie">mieszkanie</option>
@@ -63,7 +85,7 @@
             <option value="haleimagazyny">haleimagazyny</option>
             <option value="garaz">garaz</option>
           </select>
-        </div> --}}
+        </div>
         <div class="form-group">
           <label for="ownerTypeSearching">Ownership:</label>
           <select class="form-control" id="ownerTypeSearching" name="ownerTypeSearching">
@@ -76,7 +98,7 @@
           <input type="number" class="form-control" id="minPrice" name="minPrice">
         </div>
         <div class="form-group">
-          <label for="maxPrice">Maximum Price:</label>
+          <label for="maxPrice">Maximum Pri ce:</label>
           <input type="number" class="form-control" id="maxPrice" name="maxPrice">
         </div>
         <div class="form-group">
@@ -90,12 +112,15 @@
         <button type="submit" class="btn btn-primary">Scrape</button>
       </form>
       <form action="/rescrapeProperties" method="POST">
-        <div class="form-group">
-          <label required for="fileName">File Name:</label>
-          <input type="text" class="form-control" id="fileName" name="fileName">
-        </div>
-        <button type="submit" class="btn btn-primary">Rescraping</button>
-      </form>
+      <div class="form-group">
+        <label for="fileDropdown">Wybierz plik:</label>
+        <select id="fileDropdown" class="form-control">
+          {{#each files}}
+            <option value="{{this}}">{{this}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Rescrape</button>      </form>
     </div>
   </div>
 </body>
