@@ -6,6 +6,7 @@ import { CsvHelper } from './helpers/csvHelper';
 import path from 'path';
 import { Logger } from './helpers/loggerHelper';
 import bodyParser from 'body-parser';
+import { PathLike, existsSync, readdirSync } from 'fs';
 
 export class Server {
   private app: express.Application;
@@ -33,14 +34,14 @@ export class Server {
       try{
         const scraperName = req.body.scraperName;
         const city = req.body.city;
-        // const propertyType = req.body.propertyType;
+        const propertyType = req.body.propertyType;
         const type = req.body.type;
         const ownerTypeSearching = req.body.ownerTypeSearching;
         const minPrice = req.body.minPrice;
         const maxPrice = req.body.maxPrice;
         const minArea = req.body.minArea;
         const maxArea = req.body.maxArea;
-        const scraper : IPropertyScraper = Scraper.createScraper(scraperName, {type: type, city: city ? city : '', priceLow: minPrice ? minPrice : '', priceHigh: maxPrice ? maxPrice : '', areaLow: minArea ? minArea : '', areaHigh: maxArea ? maxArea : '', ownerTypeSearching: ownerTypeSearching ? ownerTypeSearching : ''});
+        const scraper : IPropertyScraper = Scraper.createScraper(scraperName, {type: type, propertyType: propertyType, city: city ? city : '', priceLow: minPrice ? minPrice : '', priceHigh: maxPrice ? maxPrice : '', areaLow: minArea ? minArea : '', areaHigh: maxArea ? maxArea : '', ownerTypeSearching: ownerTypeSearching ? ownerTypeSearching : ''});
         this.logHelper.log(`ROZPOCZYNAM SCRAPOWANIE ${scraperName}`, "log");
         await scraper.initScrape();
         // read properties
@@ -65,9 +66,21 @@ export class Server {
       }
     });
 
-    this.app.get('/dashboard', (req, res) => {
+    this.app.get('/dashboard', async (req, res) => {
       // Logika renderowania strony dashboard lub panelu admina
-      res.render('dashboard');
+      try {
+        const csvPath : PathLike = path.join(__dirname, './../csv/')
+        if(existsSync(csvPath)) {
+            const files : Array<string> = readdirSync(csvPath);
+            res.render('dashboard', {files: files});
+          }  else {
+            res.render('dashboard');
+        }
+        // const files = readdirAsync(`../../excel`)
+
+      } catch(error) {
+        this.logHelper.log(error as string, "error");
+      }
     });
   }
 

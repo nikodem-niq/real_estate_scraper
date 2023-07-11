@@ -6,8 +6,8 @@ import { Logger } from "../helpers/loggerHelper";
 import moment from "moment";
 
 export class Otodom extends Scraper implements IPropertyScraper { 
-    private saleExtendedUrl : string = baseURL.OTODOM.url+'/oferty/sprzedaz/mieszkanie';
-    private rentExtendedUrl : string = baseURL.OTODOM.url+'/oferty/wynajem/mieszkanie';
+    private saleExtendedUrl : string = baseURL.OTODOM.url+'/oferty/sprzedaz/';
+    private rentExtendedUrl : string = baseURL.OTODOM.url+'/oferty/wynajem/';
     private propertyUrl : string = baseURL.OTODOM.url+'/oferta/';
     private searchSettings : ScraperSettings;
     private pageCount: number = 0;
@@ -25,8 +25,8 @@ export class Otodom extends Scraper implements IPropertyScraper {
 
     public async initScrape() {
         try {
-            const { city, type, areaHigh, areaLow, priceHigh, priceLow, ownerTypeSearching } = this.searchSettings;
-            this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}/${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}&${ownerTypeSearching ? 'ownerTypeSingleSelect='+ownerTypeSearching : ''}&`
+            const { city, type, propertyType, areaHigh, areaLow, priceHigh, priceLow, ownerTypeSearching } = this.searchSettings;
+            this.url = `${type === 'sale' ? this.saleExtendedUrl : this.rentExtendedUrl}/${propertyType}/${city}?${areaLow ? 'areaMin='+areaLow : ''}&${areaHigh ? 'areaMax='+areaHigh : ''}&${priceLow ? 'priceMin='+priceLow : ''}&${priceHigh ? 'priceMax='+priceHigh : ''}&${ownerTypeSearching ? 'ownerTypeSingleSelect='+ownerTypeSearching : ''}&`
             console.log(this.url)
 
             this.logHelper.log(`========== STARTING SCRAPING SCOPE: ${this.url} =============`, "log");
