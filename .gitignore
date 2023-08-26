@@ -1,5 +1,6 @@
 .env
 node_modules
 .git
-DS_Store
+.DS_Store
+csv
 TODO
