@@ -5,7 +5,7 @@ const propertiesRouter : Router = Router();
 const controller = new PropertiesController();
 
 // Routes
-propertiesRouter.get('/otodom-scrap', controller.otodomController)
+propertiesRouter.post('/otodom-scrap', controller.otodomController)
 // ...
 
 export default propertiesRouter;

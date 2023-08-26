@@ -1,6 +1,7 @@
 import { launch, Browser, BrowserConnectOptions } from "puppeteer";
 import HttpClient from "../httpClient/httpClient.service";
 import type { Response } from 'node-fetch';
+import { load } from "cheerio";
 
 
 export class Scraper {
@@ -39,13 +40,18 @@ export class Scraper {
         }
       }
 
-    protected async fetchHtml(url: string): Promise<Response|[]> {
+    protected async fetchHtml(url: string): Promise<string|[]> {
         try {
             const response = await this.httpClient.get(url);
-            return response as Response;
+            return response;
         } catch (error) {
             console.error(`Error fetching HTML from ${url}:`, error);
             return [];
         }
     }
+
+    getElementText(html: string, selector: string): string {
+        const $ = load(html);
+        return $(selector).text();
+      }
 }
