@@ -1,12 +1,10 @@
 import { launch, Browser, BrowserConnectOptions } from "puppeteer";
 import HttpClient from "../httpClient/httpClient.service";
-import type { Response } from 'node-fetch';
 import { load } from "cheerio";
-
 
 export class Scraper {
     private browser: Browser | null = null;
-    private httpClient : HttpClient = new HttpClient;
+    private httpClient : HttpClient = HttpClient.getInstance();
 
     protected async launchBrowser(options: BrowserConnectOptions): Promise<void> {
         try {
@@ -36,6 +34,7 @@ export class Scraper {
             const html = await page.content();  
             return html;
         } catch(error) {
+            console.error(`Error fetching HTML from ${url}:`, error);
             return [];
         }
       }
@@ -50,8 +49,58 @@ export class Scraper {
         }
     }
 
-    getElementText(html: string, selector: string): string {
+    protected getElementText(html: string, selector: string): string {
+      try {
         const $ = load(html);
         return $(selector).text();
+      } catch(error) {
+        console.error(`Error getting text from ${selector}:`, error);
+        return '';
       }
+    }
+
+  //   protected async checkAvailabilityOfProperty(scraperName: string, dataToRescrape: any, logHelper: any) : Promise<Array<string>> {
+  //   const unavailableProperties : Array<string> = [];
+  //   try {
+      
+  //     if(dataToRescrape) {
+  //       let propCounter: number = 0;
+  //       for(const property of dataToRescrape) {
+  //           // if(propCounter > 3) continue
+  //           propCounter++;
+  //           logHelper.log(`Re-scraping progress: ${Math.ceil(propCounter/dataToRescrape.length*100)}%`, "log")
+  //           if(property !== null && typeof property === 'object' && 'text' in property) {
+  //               const res = await this.fetchHtml(property.text) as Response;
+  //               this._html = await res.text() as unknown as string;
+  //               const actualUrl : string = res.url;
+  //               if(actualUrl != property.text) {
+  //                   unavailableProperties.push(property.text as string);
+  //               }
+  //           } else if(property !== null && typeof property === 'object' && 'formula' in property && property.formula && /HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i.test(property.formula)) {
+  //               const matchedHtml = property.formula.match(/HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i);
+  //               if(matchedHtml) {
+                    
+  //                   const res = await this.fetchHtml(matchedHtml[1] as string) as Response;
+  //                   this._html = await res.text() as unknown as string;
+  //                   const actualUrl : string = res.url;  
+  //                   if(actualUrl != matchedHtml[1]) {
+  //                       unavailableProperties.push(matchedHtml[1] as string);
+  //                   }
+  //               }
+  //           } else {
+  //               const res = await this.fetchHtml(property as string) as Response;
+  //               this._html = await res.text() as unknown as string;
+  //               const actualUrl : string = res.url;
+  //               if(actualUrl != property) {
+  //                   unavailableProperties.push(property as string);
+  //               }
+  //           }
+  //       }
+  //     }
+  //   } catch(error) {
+  //     logHelper.log(error as string, "error");
+  //   }
+
+  //   return unavailableProperties
+  // }
 }

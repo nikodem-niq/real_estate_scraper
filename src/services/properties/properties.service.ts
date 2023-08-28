@@ -1,143 +1,75 @@
 // import { IProperty, PropertyType, PropertyOwnerType, WhichScraperFrom } from "../constants/interfaces";
 
+import { IProperty } from "../../constants/types";
+
 export class PropertiesService {
-    private _propertyData;
+    private scraperName!: string;
+    private type!: string;
+    private city!: string;
+    private street!: string;
+    private propertyCondition!: string;
+    private standard!: string;
+    private ownerType!: string;
+    private phoneNumber!: string;
+    private ownerName!: string;
+    private area!: number;
+    private priceForMetre!: number;
+    private fullPrice!: number;
+    private urlToProperty!: string;
   
-    constructor(propertyData: any) {
-        if(propertyData) {
-            this._propertyData = propertyData;
-        } else {
-            this._propertyData = this.setDefaultValues();
-        }
-    }
-    // propertyData
+    constructor() { }
 
-    get propertyData() : Object {
-        return this._propertyData;
-    }
+    readonly feedProperty = {
+      scraperName: (scraperName: string) => (this.scraperName = scraperName),
+      type: (type: string) => (this.type = type),
+      city: (city: string) => (this.city = city),
+      street: (street: string) => (this.street = street),
+      propertyCondition: (propertyCondition: string) => (this.propertyCondition = propertyCondition),
+      standard: (standard: string) => (this.standard = standard),
+      ownerType: (ownerType: string) => (this.ownerType = ownerType),
+      phoneNumber: (phoneNumber: string) => (this.phoneNumber = phoneNumber),
+      ownerName: (ownerName: string) => (this.ownerName = ownerName),
+      area: (area: number) => (this.area = area),
+      priceForMetre: (priceForMetre: number) => (this.priceForMetre = priceForMetre),
+      fullPrice: (fullPrice: number) => (this.fullPrice = fullPrice),
+      urlToProperty: (urlToProperty: string) => (this.urlToProperty = urlToProperty),
 
-    // Setters and getters for specific values of propertyData
-  
-    set scraper(value: string) {
-      this._propertyData.scraper = value;
-    }
-
-    set type(value: string) {
-      this._propertyData.type = value;
-    }
-  
-    set city(value: string) {
-      this._propertyData.city = value;
-    }
-  
-    set street(value: string) {
-      this._propertyData.street = value;
-    }
-  
-    set area(value: number) {
-      this._propertyData.area = value;
-    }
-  
-    set priceForMetre(value: number) {
-      this._propertyData.priceForMetre = value;
-    }
-  
-    set fullPrice(value: number) {
-      this._propertyData.fullPrice = value;
-    }
-  
-    set ownerType(value: string) {
-      this._propertyData.ownerType = value;
-    }
-  
-    set propertyCondition(value: string) {
-      this._propertyData.propertyCondition = value;
-    }
-  
-    set standard(value: string) {
-      this._propertyData.standard = value;
-    }
-  
-    set phoneNumber(value: string) {
-      this._propertyData.phoneNumber = value;
-    }
-  
-    set ownerName(value: string) {
-      this._propertyData.ownerName = value;
-    }
-  
-    set urlToProperty(value: string) {
-      this._propertyData.urlToProperty = value;
-    }
-  
-    get scraper() : string {
-      return this._propertyData.scraper;
     }
 
-    get type(): string {
-      return this._propertyData.type;
-    }
-  
-    get city(): string {
-      return this._propertyData.city;
-    }
-  
-    get street(): string {
-      return this._propertyData.street;
-    }
-  
-    get area(): number {
-      return this._propertyData.area;
-    }
-  
-    get priceForMetre(): number {
-      return this._propertyData.priceForMetre;
-    }
-  
-    get fullPrice(): number {
-      return this._propertyData.fullPrice;
-    }
-  
-    get ownerType(): string {
-      return this._propertyData.ownerType;
-    }
-  
-    get propertyCondition(): string {
-      return this._propertyData.propertyCondition;
-    }
-  
-    get standard(): string {
-      return this._propertyData.standard;
-    }
-  
-    get phoneNumber(): string {
-      return this._propertyData.phoneNumber;
-    }
-  
-    get ownerName(): string {
-      return this._propertyData.ownerName;
-    }
-  
-    get urlToProperty(): string {
-      return this._propertyData.urlToProperty;
-    }
+    public get data() : IProperty {
+      // Validate then return Property
+      this.feedProperty.scraperName(this.scraperName.toUpperCase());
 
-    setDefaultValues() : object {
-        return {
-            scraper: 'unknown',
-            type: 'unknown',
-            city: 'unknown',
-            street: 'unknown',
-            area: 0,
-            priceForMetre: 0,
-            fullPrice: 0,
-            ownerType: 'unknown',
-            propertyCondition: 'unknown',
-            standard: 'unknown',
-            phoneNumber: 'unknown',
-            ownerName: 'unknown',
-            urlToProperty: 'unknown'
-        } 
-    }
+      // Default values if something is missing
+      if(!this.type) this.feedProperty.type('unknown');
+      if(!this.city) this.feedProperty.city('unknown');
+      if(!this.street) this.feedProperty.street('unknown');
+      if(!this.propertyCondition) this.feedProperty.propertyCondition('unknown');
+      if(!this.standard) this.feedProperty.standard('unknown');
+      if(!this.ownerType) this.feedProperty.ownerType('unknown');
+      if(!this.phoneNumber) this.feedProperty.phoneNumber('unknown');
+      if(!this.ownerName) this.feedProperty.ownerName('unknown');
+      if(!this.area) this.feedProperty.area(0);
+      if(!this.priceForMetre) this.feedProperty.priceForMetre(0);
+      if(!this.fullPrice) this.feedProperty.fullPrice(0);
+      if(!this.urlToProperty) this.feedProperty.urlToProperty('unknown');
+
+
+      return {
+        scraperName: this.scraperName,
+        type: this.type,
+        city: this.city,
+        street: this.street,
+        propertyCondition: this.propertyCondition,
+        standard: this.standard,
+        ownerType: this.ownerType,
+        ownerName: this.ownerName,
+        phoneNumber: this.phoneNumber,
+        area: this.area,
+        priceForMetre: this.priceForMetre,
+        fullPrice: this.fullPrice,
+        urlToProperty: this.urlToProperty
+      }
+    } 
   }
   

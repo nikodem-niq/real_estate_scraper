@@ -3,31 +3,22 @@ import moment from "moment"
 import { Cell, CellValue, Fill, Workbook, Worksheet } from "exceljs";
 import { mkdirSync, existsSync } from "fs";
 import { inspect } from "util";
+import { IProperty } from "src/constants/types";
 
 export class ExcelHelper {
-    private workbook = new Workbook();;
+    private workbook = new Workbook();
     private worksheet = this.workbook.addWorksheet('Scraper');
-    private absolutePath = './csv/'
+    private absolutePath = './csv/';
 
-    private static instance: ExcelHelper;
-
-    private constructor() { }
-
-    public static getInstance() : ExcelHelper {
-        if(!ExcelHelper.instance) {
-            ExcelHelper.instance = new ExcelHelper();
-        }
-
-        return ExcelHelper.instance;
-    }
+    public constructor() { }
 
     public addHeaderRow() : void {
         this.worksheet.addRow(['Scraper', 'Typ', 'Miasto', 'Ulica', 'Powierzchnia', 'Cena za metr', 'Cena całkowita', 'Typ właściciela', 'Stan nieruchomości', 'Standard', 'Numer telefonu', 'Właściciel', 'URL do nieruchomości']);
     }
 
-    public addPropertyRow(Property : any) : void {
+    public addPropertyRow(Property : IProperty) : void {
         this.worksheet.addRow([
-            Property.scraper,
+            Property.scraperName,
             Property.type,
             Property.city,
             Property.street,
@@ -63,6 +54,7 @@ export class ExcelHelper {
             })
             return urls;
         } catch(error) {
+            console.error(error);
         }
     }  
     

@@ -42,3 +42,8 @@ export const randomizeNumberInRange = (min: number, max: number) : number => {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max-min+1) + min);
 }
+
+export const randomizeId = () : number => {
+    const randomizedId = Math.floor(Math.random() * 99999)
+    return randomizedId;
+}

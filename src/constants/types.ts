@@ -1,6 +1,22 @@
 import type { Request, Response, NextFunction } from "express"
 
 // Interfaces
+export interface IProperty {
+    scraperName: string,
+    type: string,
+    city: string,
+    street: string,
+    propertyCondition: string,
+    standard: string,
+    ownerType: string,
+    ownerName: string,
+    phoneNumber: string,
+    area: number,
+    priceForMetre: number,
+    fullPrice: number,
+    urlToProperty: string
+}
+
 
 // Enums
 export enum BASE_URLS {

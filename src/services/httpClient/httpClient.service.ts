@@ -2,6 +2,18 @@ import fetch, { Headers } from 'node-fetch';
 import type { Response } from 'node-fetch';
 
 class HttpClient {
+  static httpClientInstance: HttpClient;
+
+  static getInstance() : HttpClient {
+    if(!this.httpClientInstance) {
+      this.httpClientInstance = new HttpClient();
+    }
+    
+    return this.httpClientInstance;
+  }
+
+  private constructor() { }
+
     async get(url: string): Promise<string | []> {
       try {
         const headers : Headers = new Headers();

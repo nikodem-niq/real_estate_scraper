@@ -10,7 +10,7 @@ const otodomRequestSchema = Joi.object({
     priceLow: Joi.number().optional(),
     priceHigh: Joi.number().optional(),
     areaLow: Joi.number().optional(),
-    areHigh: Joi.number().optional(),
+    areaHigh: Joi.number().optional(),
 })
 
 export default {

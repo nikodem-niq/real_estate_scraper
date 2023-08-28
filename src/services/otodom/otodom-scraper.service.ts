@@ -3,11 +3,13 @@ import { BASE_URLS } from "../../constants/types";
 import { ExcelHelper } from "../excelService/excelService.service";
 import { PropertiesService } from "../properties/properties.service";
 import { Scraper } from "../scraper/scraper.service";
+import { randomizeId } from "../../helpers/helpers";
 
 class OtodomService extends Scraper {
+    private scraperName: string = 'OTODOM';
     private BASE_URL = BASE_URLS.OTODOM_BASE_URL;
     private URL : string = '';
-    private excelHelper = ExcelHelper.getInstance();
+    private excelHelper = new ExcelHelper();
 
     constructor() {
         super();
@@ -47,41 +49,48 @@ class OtodomService extends Scraper {
     public async runScrapeProperty(properties: string[], pageCount: number) : Promise<any> {
         this.excelHelper.addHeaderRow();
         let propertyCounter: number = 0;
-        const randomizedIdOfFile = Math.floor(Math.random() * 9999);
+        const fileName = `${this.scraperName}_${moment().format('MM.DD')}_${randomizeId()}`;
 
         for(const propertyData of properties) {
+            const Property = new PropertiesService()
             propertyCounter++;
 
             console.log(`Scraping progress: ${propertyCounter}/${properties.length}`, "log")
             
-            const currentPropertyHtml = await this.fetchHtml(propertyData) as string;
-            if(!JSON.parse(this.getElementText(currentPropertyHtml, "#__NEXT_DATA__"))) continue;
-            const propertyJSON = JSON.parse(this.getElementText(currentPropertyHtml, "#__NEXT_DATA__"));
-            const { ad, ad: { target } } = propertyJSON.props.pageProps;
-
-            // Set property values
-            const PropertyValues = {
-                scraper: 'OTODOM',
-                type: target?.ProperType,
-                city: target?.City,
-                street: ad?.location?.address?.street?.name,
-                area: target?.Area,
-                priceForMetre : target?.Price_per_m,
-                fullPrice : target?.Price,
-                ownerType : target?.user_type,
-                propertyCondition : "unknown",
-                standard : "unknown",
-                phoneNumber : ad?.owner?.phones[0],
-                ownerName : ad?.owner?.name,
-                urlToProperty : ad?.url
+            try {
+                const currentPropertyHtml = await this.fetchHtml(propertyData) as string;
+                if(!JSON.parse(this.getElementText(currentPropertyHtml, "#__NEXT_DATA__"))) continue;
+                const propertyJSON = JSON.parse(this.getElementText(currentPropertyHtml, "#__NEXT_DATA__"));
+                const { ad, ad: { target } } = propertyJSON.props.pageProps;
+                Property.feedProperty.scraperName(this.scraperName);
+                Property.feedProperty.type(target?.ProperType);
+                Property.feedProperty.city(target?.City);
+                Property.feedProperty.street(ad?.location?.address?.street?.name)
+                Property.feedProperty.area(target?.Area)
+                Property.feedProperty.priceForMetre(target?.Price_per_m)
+                Property.feedProperty.fullPrice(target?.Price)
+                Property.feedProperty.ownerType(target?.user_type)
+                Property.feedProperty.phoneNumber(ad?.owner?.phones[0])
+                Property.feedProperty.ownerName(ad?.owner?.name)
+                Property.feedProperty.urlToProperty(ad?.url)
+    
+                const { data } = Property;
+    
+    
+                this.excelHelper.addPropertyRow(data)
+                await this.excelHelper.saveExcelFile(fileName as string);
+            } catch(error) {
+                console.error(error);
+                continue;
             }
 
-            const PropertyInstance = new PropertiesService(PropertyValues)
-
-            this.excelHelper.addPropertyRow(PropertyValues)
-            await this.excelHelper.saveExcelFile(`${PropertyValues.scraper}_${moment().format('MM.DD')}_${randomizedIdOfFile}` as string);
         }
-        return true;
+
+        if(properties.length !== propertyCounter) return false;
+        return {
+            status: 'scrapped',
+            file: fileName
+        };
     }
 
     private createUrlFromSettings({voivoideship, city, type, ownerTypeSearching, propertyType, priceLow, priceHigh, areaLow, areaHigh}: OtodomSettings) : string {
@@ -101,7 +110,7 @@ class OtodomService extends Scraper {
     }
 }
 
-export default new OtodomService();
+export default OtodomService;
 
 
 type ScraperSettingType = "wynajem" | "sprzedaz";
