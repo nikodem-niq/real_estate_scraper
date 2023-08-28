@@ -7,8 +7,7 @@ import { Scraper } from "../scraper/scraper.service";
 class OtodomService extends Scraper {
     private BASE_URL = BASE_URLS.OTODOM_BASE_URL;
     private URL : string = '';
-    private excelHelper = new ExcelHelper();
-
+    private excelHelper = ExcelHelper.getInstance();
 
     constructor() {
         super();
@@ -17,6 +16,7 @@ class OtodomService extends Scraper {
     public async initScrape(settings: OtodomSettings) : Promise<number> {
         const parsedUrl = this.createUrlFromSettings(settings)
         this.URL = parsedUrl;
+        console.log(parsedUrl)
         const requestedHtml = await this.fetchHtml(parsedUrl); // it should returns `response.text()`
         if(requestedHtml && typeof requestedHtml === 'string') {
             const pageCount = requestedHtml?.match(/"page_count":\d{1,}/gm);
@@ -30,7 +30,9 @@ class OtodomService extends Scraper {
         for(let i=1; i<=pageCount; i++) {
             const currentScrapingUrl = `${this.URL}&page=${i}`;
             const currentPropertiesListHtml = await this.fetchHtml(currentScrapingUrl) as string;
-            // this.logHelper.log(`Fetching OTODOM properties, current progress: ${i}/${this.pageCount} sites`, "log")
+
+            console.log(`Fetching OTODOM properties, current progress: ${i}/${pageCount} sites`)
+
             if(!JSON.parse(this.getElementText(currentPropertiesListHtml, "#__NEXT_DATA__"))) continue;
             const siteData = JSON.parse(this.getElementText(currentPropertiesListHtml, "#__NEXT_DATA__"));
             const { props : { pageProps : { data : { searchAds : { items }}}}} = siteData
@@ -42,14 +44,16 @@ class OtodomService extends Scraper {
         return properties;
     }
 
-    public async runScrapeProperty(properties: string[]) : Promise<any> {
+    public async runScrapeProperty(properties: string[], pageCount: number) : Promise<any> {
         this.excelHelper.addHeaderRow();
         let propertyCounter: number = 0;
         const randomizedIdOfFile = Math.floor(Math.random() * 9999);
 
         for(const propertyData of properties) {
             propertyCounter++;
-            // this.logHelper.log(`Scraping progress: ${Math.ceil(propertyCounter/(36*this.pageCount)*100)}%`, "log")
+
+            console.log(`Scraping progress: ${propertyCounter}/${properties.length}`, "log")
+            
             const currentPropertyHtml = await this.fetchHtml(propertyData) as string;
             if(!JSON.parse(this.getElementText(currentPropertyHtml, "#__NEXT_DATA__"))) continue;
             const propertyJSON = JSON.parse(this.getElementText(currentPropertyHtml, "#__NEXT_DATA__"));
@@ -74,22 +78,8 @@ class OtodomService extends Scraper {
 
             const PropertyInstance = new PropertiesService(PropertyValues)
 
-            // this.Property.scraper = baseURL.OTODOM.name;
-            // this.Property.type = target?.ProperType || "unknown";
-            // this.Property.city = target?.City || "unknown";
-            // this.Property.street = ad?.location?.address?.street?.name || "unknown";
-            // this.Property.area = target?.Area || 0;
-            // this.Property.priceForMetre = target?.Price_per_m || 0;
-            // this.Property.fullPrice = target?.Price || 0;
-            // this.Property.ownerType = target?.user_type || "unknown"
-            // this.Property.propertyCondition = "unknown";
-            // this.Property.standard = "unknown";
-            // this.Property.phoneNumber = ad?.owner?.phones[0] || "unknown";
-            // this.Property.ownerName = ad?.owner?.name || "unknown";
-            // this.Property.urlToProperty = ad?.url || "unknown";
-
             this.excelHelper.addPropertyRow(PropertyValues)
-            this.excelHelper.saveExcelFile(`${PropertyValues.scraper}_${moment().format('MM.DD')}_${randomizedIdOfFile}` as string);
+            await this.excelHelper.saveExcelFile(`${PropertyValues.scraper}_${moment().format('MM.DD')}_${randomizedIdOfFile}` as string);
         }
         return true;
     }
