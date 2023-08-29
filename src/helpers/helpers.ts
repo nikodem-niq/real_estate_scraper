@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { existsSync } from "fs";
 import { messageLocales } from '../constants/locales';
 import path from 'path';
 import { config } from '../config/config';
@@ -6,17 +7,21 @@ import { config } from '../config/config';
 /**
  * 
  * @param filePath 
- * @returns json data from db file or null if path is wrong
+ * @returns json data from db file or empty [] if path is wrong
  */
-export const readFile = async (filePath : string) : Promise<any> => {
+export const readFile = async (filePath : string, format: "json"|"plain" = "plain") : Promise<string | []> => {
     try {
+        if(!existsSync(filePath)) {
+            return []
+        }
         const pathParsed = path.join(__dirname, '..', '..', filePath);
         const fileData = await fs.readFile(pathParsed, {encoding: 'utf-8'});
         const parsedData = JSON.parse(fileData);
-        return parsedData;
+        if(format === "json") return parsedData;
+        return fileData;
     } catch(error) {
         console.error(messageLocales.READ_FILE_ERROR);
-        return null;
+        return [];
     }
 }
 

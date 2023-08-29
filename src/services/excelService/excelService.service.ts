@@ -1,5 +1,4 @@
 import moment from "moment"
-// import { IProperty } from "../constants/interfaces";
 import { Cell, CellValue, Fill, Workbook, Worksheet } from "exceljs";
 import { mkdirSync, existsSync } from "fs";
 import { inspect } from "util";
@@ -41,26 +40,31 @@ export class ExcelHelper {
         await this.workbook.xlsx.writeFile(`${this.absolutePath}${scraperName}.xlsx`);
     }
 
-    public async readExcelFile(fileName: string, options: ReadExcelOptions = {}) {
+    public async readExcelFile(fileName: string, options: ReadExcelOptions = {}) : Promise<string[]> {
         try {
+            if(!existsSync(this.absolutePath+fileName+'.xlsx')) return [];
+
             await this.workbook.xlsx.readFile(this.absolutePath+fileName+'.xlsx');
             const worksheet = this.workbook.getWorksheet('Scraper');
-            const urls : Array<string|CellValue> = [];
+
+            const urls : string[] = [];
+            
             worksheet.eachRow((row: any, rowNumber: any) => {
                 if(rowNumber != 1) {
-                    const url : CellValue | string = options.cell ? row.getCell(options.cell).value : '';
+                    const url : string = options.cell ? row.getCell(options.cell).value : '' as string;
                     urls.push(url);
                 }
             })
+
             return urls;
         } catch(error) {
             console.error(error);
+            return []
         }
     }  
     
     public async highlightExpiredProperties(fileName: string, expiredProperties: Array<any>) {
 
-        console.log(expiredProperties)
         await this.workbook.xlsx.readFile(this.absolutePath+fileName+'.xlsx');
         const worksheet = this.workbook.getWorksheet('Scraper');
         const urlColumnIndex = 'M'
@@ -69,18 +73,15 @@ export class ExcelHelper {
             const cellValue : CellValue = row.getCell(urlColumnIndex).value;
             if(cellValue !== null && typeof cellValue === 'object' && 'text' in cellValue) {
                 if(expiredProperties.includes(cellValue.text)) {
-                    console.log(cellValue, rowNumber)
                     row.getCell('B').fill = { fgColor: { argb: 'FF556677' }, pattern: 'solid', type: 'pattern' };
                 }
             } else if(cellValue !== null && typeof cellValue === 'object' && 'formula' in cellValue) {        
                 const matchedHtml = cellValue.formula?.match(/HYPERLINK\("([^"]+)",\s*"[^"]+"\)/i);
                 if(matchedHtml && expiredProperties.includes(matchedHtml[1])) {
-                    console.log(cellValue, rowNumber)
                     row.getCell('B').fill = { fgColor: { argb: 'FF556612' }, pattern: 'solid', type: 'pattern' };
                 }
             } else {
                 if(expiredProperties.includes(cellValue)) {
-                    console.log(cellValue, rowNumber)
                     row.getCell('B').fill = { fgColor: { argb: 'FF556612' }, pattern: 'solid', type: 'pattern' };
                 }
             }

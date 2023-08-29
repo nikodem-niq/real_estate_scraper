@@ -14,7 +14,7 @@ class HttpClient {
 
   private constructor() { }
 
-    async get(url: string): Promise<string | []> {
+    async get(url: string): Promise<Response | []> {
       try {
         const headers : Headers = new Headers();
         headers.append('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
@@ -24,7 +24,7 @@ class HttpClient {
           headers: headers,
         });
 
-        return response.text();
+        return response;
         
       } catch (error) {
         console.error(`Error fetching data from ${url}:`, error);

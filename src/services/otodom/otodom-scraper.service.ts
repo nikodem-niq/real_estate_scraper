@@ -88,9 +88,23 @@ class OtodomService extends Scraper {
 
         if(properties.length !== propertyCounter) return false;
         return {
-            status: 'scrapped',
+            status: 'scrapped', 
             file: fileName
         };
+    }
+
+    public async rescrapePropertiesFromFile(fileName: string) : Promise<boolean> {
+        try {
+            const dataToRescrape = await this.excelHelper.readExcelFile(fileName, {cell: 'M'});
+            if(!dataToRescrape.length) return false;
+            const unavailableProperties = await this.checkAvailabilityOfProperty(dataToRescrape)
+            this.excelHelper.highlightExpiredProperties(fileName, unavailableProperties);
+
+            return true;
+        } catch(error) {
+            console.error("Error with rescraping file", error);
+            return false;
+        }
     }
 
     private createUrlFromSettings({voivoideship, city, type, ownerTypeSearching, propertyType, priceLow, priceHigh, areaLow, areaHigh}: OtodomSettings) : string {

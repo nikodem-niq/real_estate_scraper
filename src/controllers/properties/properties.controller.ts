@@ -3,7 +3,7 @@ import { messageLocales } from "../../constants/locales";
 import OtodomService, { OtodomSettings } from "../../services/otodom/otodom-scraper.service";
 
 export class PropertiesController {
-    public async otodomController(req: Request, res: Response, next: NextFunction) {
+    public async otodomScrapController(req: Request, res: Response, next: NextFunction) {
         try {
             const Service = new OtodomService()
 
@@ -19,6 +19,22 @@ export class PropertiesController {
             
 
             return res.status(200).json(propertyScrapTask);
+        } catch(error) {
+            console.error(error);
+            return res.status(400).json(messageLocales.RESOURCE_FETCH_ERROR);
+        }
+    }
+
+    public async otodomRescrapController(req: Request, res: Response, next: NextFunction) {
+        try {
+            const Service = new OtodomService();
+            
+            const { fileName } = req.body;
+
+            const rescrapTask = await Service.rescrapePropertiesFromFile(fileName);
+            if(!rescrapTask) return res.status(400).json(messageLocales.RESOURCE_FETCH_ERROR)
+
+            return res.status(200).json(messageLocales.RESCRAPPING_SUCCESS);
         } catch(error) {
             console.error(error);
             return res.status(400).json(messageLocales.RESOURCE_FETCH_ERROR);

@@ -9,6 +9,10 @@ export const messageLocales = {
     RESOURCE_FETCH_ERROR: "Error with fetching a resource",
     RESOURCE_EMPTY: "There is nothing to fetch",
 
+    // Scrapping
+    SCRAPPING_SUCCESS: "Scrapped successfully",
+    RESCRAPPING_SUCCESS: "Re-scrapped successfully",
+
     // Schema messages
     OBJECT_SCHEMA_VALIDATION_ERROR: "Object validation error",
     SCHEMA_OBJECT_NOT_FOUND: "Schema for object has not been found",

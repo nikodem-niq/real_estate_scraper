@@ -13,8 +13,13 @@ const otodomRequestSchema = Joi.object({
     areaHigh: Joi.number().optional(),
 })
 
+const rescrapingRequestSchema = Joi.object({
+    fileName: Joi.string().required(),
+})
+
 export default {
-    'otodomRequestSchema' : otodomRequestSchema
+    'otodomRequestSchema' : otodomRequestSchema,
+    'rescrapingRequestSchema' : rescrapingRequestSchema
 } as {
     [key: string] : ObjectSchema
 };
